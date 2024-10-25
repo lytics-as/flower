@@ -12,7 +12,6 @@ from celery.events.state import State
 from prometheus_client import Counter as PrometheusCounter
 from prometheus_client import Gauge, Histogram
 from tornado.ioloop import PeriodicCallback
-from tornado.options import options
 
 try:
     import redis
@@ -24,23 +23,25 @@ logger = logging.getLogger(__name__)
 PROMETHEUS_METRICS = None
 
 
-def get_prometheus_metrics():
+def get_prometheus_metrics(task_runtime_metric_buckets):
     global PROMETHEUS_METRICS  # pylint: disable=global-statement
     if PROMETHEUS_METRICS is None:
-        PROMETHEUS_METRICS = PrometheusMetrics()
+        from tornado.options import options
+
+        PROMETHEUS_METRICS = PrometheusMetrics(options.task_runtime_metric_buckets)
 
     return PROMETHEUS_METRICS
 
 
 class PrometheusMetrics:
-    def __init__(self):
+    def __init__(self, task_runtime_metric_buckets):
         self.events = PrometheusCounter('flower_events_total', "Number of events", ['worker', 'type', 'task'])
 
         self.runtime = Histogram(
             'flower_task_runtime_seconds',
             "Task runtime",
             ['worker', 'task'],
-            buckets=options.task_runtime_metric_buckets
+            buckets=task_runtime_metric_buckets
         )
         self.prefetch_time = Gauge(
             'flower_task_prefetch_time_seconds',
@@ -66,7 +67,7 @@ class EventsState(State):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.counter = collections.defaultdict(Counter)
-        self.metrics = get_prometheus_metrics()
+        self.metrics = get_prometheus_metrics(options.task_runtime_metric_buckets)
 
     def event(self, event):
         # Save the event
