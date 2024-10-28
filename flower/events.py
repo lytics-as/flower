@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 PROMETHEUS_METRICS = None
 
 
-def get_prometheus_metrics(task_runtime_metric_buckets):
+def get_prometheus_metrics():
     global PROMETHEUS_METRICS  # pylint: disable=global-statement
     if PROMETHEUS_METRICS is None:
         from tornado.options import options
@@ -67,7 +67,7 @@ class EventsState(State):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.counter = collections.defaultdict(Counter)
-        self.metrics = get_prometheus_metrics(options.task_runtime_metric_buckets)
+        self.metrics = get_prometheus_metrics()
 
     def event(self, event):
         # Save the event
