@@ -26,9 +26,12 @@ PROMETHEUS_METRICS = None
 def get_prometheus_metrics():
     global PROMETHEUS_METRICS  # pylint: disable=global-statement
     if PROMETHEUS_METRICS is None:
-        from tornado.options import options
+        # from tornado.options import options
 
-        PROMETHEUS_METRICS = PrometheusMetrics(options.task_runtime_metric_buckets)
+        # PROMETHEUS_METRICS = PrometheusMetrics(options.task_runtime_metric_buckets)
+
+        from prometheus_client import Histogram
+        PROMETHEUS_METRICS = PrometheusMetrics(Histogram.DEFAULT_BUCKETS)
 
     return PROMETHEUS_METRICS
 
