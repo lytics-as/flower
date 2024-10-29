@@ -536,7 +536,9 @@ var flower = (function () {
             return;
         }
 
-        $('#tasks-table').DataTable({
+        let query = $.urlParam('state') ? 'state:' + $.urlParam('state') : ''
+
+        var table = $('#tasks-table').DataTable({
             rowId: 'uuid',
             searching: true,
             scrollX: true,
@@ -559,9 +561,6 @@ var flower = (function () {
             order: [
                 [7, "desc"]
             ],
-            oSearch: {
-                "sSearch": $.urlParam('state') ? 'state:' + $.urlParam('state') : ''
-            },
             columnDefs: [{
                 targets: 0,
                 data: 'name',
@@ -687,6 +686,8 @@ var flower = (function () {
                 visible: isColumnVisible('eta')
             }, ],
         });
+
+        table.search(query).draw();
 
     });
 

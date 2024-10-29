@@ -67,9 +67,11 @@ class PrometheusMetrics:
 class EventsState(State):
     # EventsState object is created and accessed only from ioloop thread
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, counter=None, *args, **kwargs):
+        if 'counter' in kwargs:
+            counter = kwargs.pop('counter')
         super().__init__(*args, **kwargs)
-        self.counter = collections.defaultdict(Counter)
+        self.counter = collections.defaultdict(Counter) if counter is None else counter
         self.metrics = get_prometheus_metrics()
 
     def event(self, event):
@@ -118,6 +120,10 @@ class EventsState(State):
 
         if event_type == 'worker-offline':
             self.metrics.worker_online.labels(worker_name).set(0)
+
+    def __reduce__(self):
+        parent = super().__reduce__()
+        return self.__class__, (self.counter,) + parent[1]
 
 
 class Events(threading.Thread):
